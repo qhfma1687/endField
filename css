@@ -1,0 +1,8 @@
+app/
+ ├── main.py
+ ├── database.py
+ ├── models.py
+ ├── services/
+ │     └── optimizer.py
+ └── routers/
+       └── optimize.py
