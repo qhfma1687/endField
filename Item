@@ -1,0 +1,26 @@
+from sqlalchemy import Column, Integer, String, Float, Enum
+from sqlalchemy.orm import relationship
+from database import Base
+import enum
+
+
+class ItemType(enum.Enum):
+    mineral = "mineral"      # 채굴/제한 자원
+    farm = "farm"            # 재배/무한 자원
+    processed = "processed"  # 가공품
+
+
+class Item(Base):
+    __tablename__ = "items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+
+    type = Column(Enum(ItemType), nullable=False)
+
+    sell_price = Column(Float, default=0)     # 판매가
+    unlock_level = Column(Integer, default=1) # 판매 가능 레벨
+
+    # 관계
+    blueprint_inputs = relationship("BlueprintInput", back_populates="item")
+    blueprint_outputs = relationship("BlueprintOutput", back_populates="item")
