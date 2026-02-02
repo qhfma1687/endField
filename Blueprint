@@ -1,0 +1,17 @@
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy.orm import relationship
+
+
+class Blueprint(Base):
+    __tablename__ = "blueprints"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+
+    facility_type = Column(String)  # 사용 시설
+
+    # 이 청사진이 1세트 기준 분당 몇 개 생산?
+    output_per_min = Column(Float, nullable=False)
+
+    inputs = relationship("BlueprintInput", back_populates="blueprint")
+    outputs = relationship("BlueprintOutput", back_populates="blueprint")
