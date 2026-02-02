@@ -1,0 +1,11 @@
+class BlueprintOutput(Base):
+    __tablename__ = "blueprint_outputs"
+
+    id = Column(Integer, primary_key=True)
+    blueprint_id = Column(Integer, ForeignKey("blueprints.id"))
+    item_id = Column(Integer, ForeignKey("items.id"))
+
+    amount_per_min = Column(Float)  # 분당 생산량
+
+    blueprint = relationship("Blueprint", back_populates="outputs")
+    item = relationship("Item", back_populates="blueprint_outputs")
