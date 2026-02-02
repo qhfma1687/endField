@@ -1,0 +1,9 @@
+user_minerals = {
+    "Ferrium Ore": 120,
+    "Originium Ore": 60
+}
+
+user_level = 5
+
+result = optimize_production(blueprints, user_minerals, user_level)
+print(result)
