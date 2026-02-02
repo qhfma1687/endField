@@ -1,0 +1,75 @@
+import numpy as np
+from scipy.optimize import linprog
+
+
+def optimize_production(blueprints, user_minerals, user_level):
+    """
+    blueprints: DB에서 가져온 Blueprint 객체 리스트
+    user_minerals: {"Iron Ore": 100, "Ferrium Ore": 50} 형태
+    user_level: 유저 레벨
+    """
+
+    valid_blueprints = []
+    values = []
+
+    # 1️⃣ 판매 가능 출력만 가진 청사진 필터
+    for bp in blueprints:
+        total_value_per_min = 0
+
+        for out in bp.outputs:
+            item = out.item
+
+            if item.unlock_level > user_level:
+                continue
+
+            total_value_per_min += out.amount_per_min * item.sell_price
+
+        if total_value_per_min > 0:
+            valid_blueprints.append(bp)
+            values.append(total_value_per_min)
+
+    if not valid_blueprints:
+        return {"error": "판매 가능한 청사진이 없음"}
+
+    # 2️⃣ 목적 함수 (최대화 → 음수)
+    c = [-v for v in values]
+
+    # 3️⃣ 광물 자원 목록 추출
+    mineral_names = list(user_minerals.keys())
+
+    A = []
+    b = []
+
+    for mineral in mineral_names:
+        row = []
+        for bp in valid_blueprints:
+            consumption = 0
+            for inp in bp.inputs:
+                if inp.item.name == mineral:
+                    consumption += inp.amount_per_min
+            row.append(consumption)
+        A.append(row)
+        b.append(user_minerals[mineral])
+
+    # 4️⃣ 선형계획법 실행
+    result = linprog(c, A_ub=A, b_ub=b, bounds=(0, None), method="highs")
+
+    if not result.success:
+        return {"error": "최적화 실패", "detail": result.message}
+
+    # 5️⃣ 결과 정리
+    plan = []
+    for i, x in enumerate(result.x):
+        if x > 0.01:
+            plan.append({
+                "blueprint": valid_blueprints[i].name,
+                "sets": round(x, 2),
+                "value_per_min": round(values[i] * x, 2)
+            })
+
+    total_value = sum(values[i] * result.x[i] for i in range(len(values)))
+
+    return {
+        "total_value_per_min": round(total_value, 2),
+        "plan": plan
+    }
